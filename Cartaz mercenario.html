@@ -119,7 +119,6 @@ background:#1b3a5a;
 <label>CARIMBO</label>
 
 <select id="stampSelect">
-
 <option value="">NENHUM</option>
 <option value="stamp1.png">CARIMBO 1</option>
 <option value="stamp2.png">CARIMBO 2</option>
@@ -129,7 +128,6 @@ background:#1b3a5a;
 <option value="stamp6.png">CARIMBO 6</option>
 <option value="stamp7.png">CARIMBO 7</option>
 <option value="stamp8.png">CARIMBO 8</option>
-
 </select>
 
 <button id="download">BAIXAR CARTAZ</button>
@@ -159,27 +157,67 @@ const imgState = {x:0,y:0,scale:1.1,rot:0}
 
 function upper(t){ return (t||"").toUpperCase() }
 
+/* SISTEMA ROMANO COM SUBTRAÇÃO */
+
 const SYMBOLS = [
 
 {sym:"☠︎", val:5000000000},
+
+{sym:"✙☠︎", val:4000000000},
 {sym:"✙", val:1000000000},
+
+{sym:"卍✙", val:900000000},
 {sym:"卍", val:500000000},
+
+{sym:"☭卍", val:400000000},
 {sym:"☭", val:100000000},
+
+{sym:"ω☭", val:90000000},
 {sym:"ω", val:50000000},
+
+{sym:"ᦂω", val:40000000},
 {sym:"ᦂ", val:10000000},
+
+{sym:"✰ᦂ", val:9000000},
 {sym:"✰", val:5000000},
+
+{sym:"✯✰", val:4000000},
 {sym:"✯", val:1000000},
+
+{sym:"✥✯", val:900000},
 {sym:"✥", val:500000},
+
+{sym:"❉✥", val:400000},
 {sym:"❉", val:100000},
+
+{sym:"⊛❉", val:90000},
 {sym:"⊛", val:50000},
+
+{sym:"✹⊛", val:40000},
 {sym:"✹", val:10000},
+
+{sym:"♛✹", val:9000},
 {sym:"♛", val:5000},
+
+{sym:"◘♛", val:4000},
 {sym:"◘", val:1000},
+
+{sym:"☼◘", val:900},
 {sym:"☼", val:500},
+
+{sym:"○☼", val:400},
 {sym:"○", val:100},
+
+{sym:"¤○", val:90},
 {sym:"¤", val:50},
+
+{sym:"⊗¤", val:40},
 {sym:"⊗", val:10},
+
+{sym:"♡⊗", val:9},
 {sym:"♡", val:5},
+
+{sym:"♥♡", val:4},
 {sym:"♥", val:1}
 
 ]
@@ -189,15 +227,15 @@ function toSymbols(n){
 let raw = String(n).replace(/[^\d]/g,"")
 let num = parseInt(raw)
 
-if(!num)return ""
+if(!num) return ""
 
 let out=""
 
 for(let s of SYMBOLS){
 
-while(num>=s.val){
-out+=s.sym
-num-=s.val
+while(num >= s.val){
+out += s.sym
+num -= s.val
 }
 
 }
@@ -205,6 +243,8 @@ num-=s.val
 return out
 
 }
+
+/* CARREGAR IMAGEM */
 
 function loadImage(file){
 
@@ -221,10 +261,8 @@ img.src=url
 }
 
 $("portrait").onchange=async e=>{
-
 portraitImg=await loadImage(e.target.files[0])
 render()
-
 }
 
 $("zoom").oninput=e=>{
@@ -324,6 +362,51 @@ ctx.restore()
 
 }
 
+/* TEXTO */
+
+function drawReward(){
+
+let text = toSymbols($("rewardNumber").value)
+
+let fontSize = 60
+
+ctx.textAlign="center"
+
+if(text.length <= 18){
+
+ctx.font="700 "+fontSize+"px Playfair Display"
+
+ctx.fillText(
+text,
+canvas.width/2,
+canvas.height*0.83
+)
+
+}else{
+
+let line1 = text.slice(0,18)
+let line2 = text.slice(18)
+
+fontSize -= 2
+
+ctx.font="700 "+fontSize+"px Playfair Display"
+
+ctx.fillText(
+line1,
+canvas.width/2,
+canvas.height*0.81
+)
+
+ctx.fillText(
+line2,
+canvas.width/2,
+canvas.height*0.86
+)
+
+}
+
+}
+
 function drawText(){
 
 ctx.fillStyle="#2a1a10"
@@ -335,10 +418,7 @@ ctx.fillText(upper($("status").value), canvas.width*0.30, canvas.height*0.275)
 
 ctx.fillText(upper($("region").value), canvas.width*0.44, canvas.height*0.315)
 
-ctx.textAlign="center"
-
-ctx.font="700 60px Playfair Display"
-ctx.fillText(toSymbols($("rewardNumber").value), canvas.width/2, canvas.height*0.83)
+drawReward()
 
 ctx.textAlign="left"
 
