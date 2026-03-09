@@ -1,0 +1,263 @@
+```html
+<!doctype html>
+<html lang="pt-br">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Vigília Azul — Cartaz de Intervenção</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Libre+Baskerville:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--panel:#0f1a2d;
+--panel2:#0b1426;
+--stroke:rgba(255,255,255,.12);
+--txt:#e9edf3;
+--muted:rgba(233,237,243,.78);
+}
+
+body{
+margin:0;
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+background:#0b1220;
+color:var(--txt);
+display:flex;
+min-height:100vh;
+}
+
+.wrap{
+width:min(1280px,96vw);
+margin:24px auto;
+display:grid;
+grid-template-columns:420px 1fr;
+gap:18px;
+}
+
+.panel{
+background:var(--panel);
+border-radius:16px;
+padding:16px;
+}
+
+label{
+display:block;
+font-size:12px;
+margin:10px 0 6px;
+}
+
+input,select{
+width:100%;
+padding:10px;
+border-radius:10px;
+border:1px solid var(--stroke);
+background:var(--panel2);
+color:white;
+}
+
+.row{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+.btns{
+display:flex;
+gap:10px;
+margin-top:14px;
+}
+
+button{
+flex:1;
+padding:11px;
+border-radius:12px;
+border:1px solid var(--stroke);
+background:#1b3a5a;
+color:#fff;
+font-weight:800;
+cursor:pointer;
+}
+
+.preview{
+display:flex;
+justify-content:center;
+padding:14px;
+}
+
+canvas{
+width:min(720px,98%);
+height:auto;
+border-radius:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="panel">
+
+<label>Imagem do personagem</label>
+<input id="portrait" type="file">
+
+<label>Nome</label>
+<input id="name">
+
+<label>Alcunha</label>
+<input id="alias">
+
+<div class="row">
+
+<div>
+<label>Status</label>
+<select id="status">
+<option>PROCURADO</option>
+<option>CAPTURA AUTORIZADA</option>
+<option>NEUTRALIZAÇÃO PERMITIDA</option>
+<option>INTERVENÇÃO IMEDIATA</option>
+</select>
+</div>
+
+<div>
+<label>Última Região</label>
+<input id="region">
+</div>
+
+</div>
+
+<div class="row">
+
+<div>
+<label>Recompensa</label>
+<input id="bounty">
+</div>
+
+<div>
+<label>Moeda</label>
+<select id="currency">
+<option value="">฿</option>
+<option value="B$">B$</option>
+</select>
+</div>
+
+</div>
+
+<div class="btns">
+<button id="render">Atualizar</button>
+<button id="download">Baixar PNG</button>
+</div>
+
+</div>
+
+<div class="panel preview">
+<canvas id="c" width="1536" height="2048"></canvas>
+</div>
+
+</div>
+
+<script>
+
+const $ = id=>document.getElementById(id)
+const canvas = $("c")
+const ctx = canvas.getContext("2d")
+
+let templateImg = new Image()
+let portraitImg = null
+
+// URL DO TEMPLATE NO GOOGLE DRIVE
+templateImg.crossOrigin = "anonymous"
+templateImg.src = "https://drive.google.com/uc?export=view&id=1XyExpHYDnadau89wpAk6L7_1z_qk1bUc"
+
+templateImg.onload = ()=>render()
+
+function formatBounty(n){
+
+const raw = String(n).replace(/[^\d]/g,'')
+
+if(!raw) return ""
+
+return raw.replace(/\B(?=(\d{3})+(?!\d))/g,".")
+
+}
+
+function render(){
+
+if(!templateImg) return
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+const rect={
+x:canvas.width*0.16,
+y:canvas.height*0.23,
+w:canvas.width*0.68,
+h:canvas.height*0.43
+}
+
+if(portraitImg){
+ctx.drawImage(portraitImg,rect.x,rect.y,rect.w,rect.h)
+}
+
+ctx.drawImage(templateImg,0,0,canvas.width,canvas.height)
+
+ctx.fillStyle="#0b1a24"
+ctx.textAlign="left"
+
+ctx.font='700 '+Math.round(canvas.height*0.028)+'px "Libre Baskerville", serif'
+ctx.fillText($("name").value, canvas.width*0.22, canvas.height*0.63)
+ctx.fillText($("alias").value, canvas.width*0.263, canvas.height*0.665)
+ctx.fillText($("status").value, canvas.width*0.23, canvas.height*0.70)
+ctx.fillText($("region").value, canvas.width*0.54, canvas.height*0.73)
+
+ctx.font='700 '+Math.round(canvas.height*0.045)+'px "Playfair Display", serif'
+
+const reward = ($("currency").value+" "+formatBounty($("bounty").value)).trim()
+
+ctx.fillText(reward, canvas.width*0.2, canvas.height*0.831)
+
+}
+
+$("portrait").addEventListener("change",e=>{
+
+const file = e.target.files[0]
+if(!file) return
+
+const url = URL.createObjectURL(file)
+
+portraitImg = new Image()
+portraitImg.onload=()=>render()
+portraitImg.src=url
+
+})
+
+$("render").onclick=render
+
+$("download").onclick=()=>{
+
+render()
+
+const link=document.createElement("a")
+
+link.download="vigilia-azul-cartaz.png"
+link.href=canvas.toDataURL("image/png")
+
+link.click()
+
+}
+
+["name","alias","region","bounty","status","currency"].forEach(id=>{
+$(id).addEventListener("input",render)
+})
+
+</script>
+
+</body>
+</html>
+```
