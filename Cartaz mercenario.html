@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+<meta charset="utf-8"/>
+<title>Cartaz Guilda dos Mercenários</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+background:#0b1220;
+font-family:system-ui;
+margin:0;
+display:flex;
+justify-content:center;
+}
+
+.wrap{
+width:1200px;
+display:grid;
+grid-template-columns:400px 1fr;
+gap:20px;
+margin-top:20px;
+}
+
+.panel{
+background:#0f1a2d;
+padding:16px;
+border-radius:12px;
+color:white;
+}
+
+label{
+font-size:13px;
+display:block;
+margin-top:10px;
+}
+
+input,select{
+width:100%;
+padding:8px;
+margin-top:4px;
+background:#08101e;
+border:1px solid #263248;
+color:white;
+border-radius:8px;
+}
+
+canvas{
+width:720px;
+border-radius:10px;
+cursor:grab;
+}
+
+button{
+margin-top:12px;
+padding:10px;
+width:100%;
+background:#5f4d1c;
+border:none;
+color:white;
+font-weight:bold;
+border-radius:8px;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="panel">
+
+<label>Imagem do alvo</label>
+<input id="portrait" type="file">
+
+<label>Zoom</label>
+<input id="zoom" type="range" min="0.4" max="3" step="0.01" value="1.1">
+
+<label>Rotação</label>
+<input id="rot" type="range" min="-180" max="180" step="1" value="0">
+
+<label>Alcunha</label>
+<input id="alias">
+
+<label>Status</label>
+<select id="status">
+<option>VIVO</option>
+<option>MORTO</option>
+<option>TANTO FAZ</option>
+</select>
+
+<label>Última Região</label>
+<input id="region">
+
+<label>Recompensa</label>
+<input id="rewardNumber">
+
+<label>Código</label>
+<input id="code" value="CG-1A-77F2">
+
+<label>Carimbo</label>
+
+<select id="stampSelect">
+
+<option value="">Nenhum</option>
+
+<option value="stamp1.png">Carimbo 1</option>
+<option value="stamp2.png">Carimbo 2</option>
+<option value="stamp3.png">Carimbo 3</option>
+<option value="stamp4.png">Carimbo 4</option>
+<option value="stamp5.png">Carimbo 5</option>
+<option value="stamp6.png">Carimbo 6</option>
+<option value="stamp7.png">Carimbo 7</option>
+<option value="stamp8.png">Carimbo 8</option>
+
+
+</select>
+
+<button id="download">Baixar Cartaz</button>
+
+</div>
+
+<div class="panel">
+<canvas id="canvas" width="1536" height="2048"></canvas>
+</div>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("canvas")
+const ctx = canvas.getContext("2d")
+
+const $ = id => document.getElementById(id)
+
+let portraitImg = null
+let stampImg = null
+
+let templateImg = new Image()
+templateImg.src = "TempleteMercenario.png"
+
+const imgState = {x:0,y:0,scale:1.1,rot:0}
+
+const SYMBOLS = [
+
+{sym:"☠︎", val:5000000000},
+{sym:"✙", val:1000000000},
+{sym:"卍", val:500000000},
+{sym:"☭", val:100000000},
+{sym:"ω", val:50000000},
+{sym:"ᦂ", val:10000000},
+{sym:"✰", val:5000000},
+{sym:"✯", val:1000000},
+{sym:"✥", val:500000},
+{sym:"❉", val:100000},
+{sym:"⊛", val:50000},
+{sym:"✹", val:10000},
+{sym:"♛", val:5000},
+{sym:"◘", val:1000},
+{sym:"☼", val:500},
+{sym:"○", val:100},
+{sym:"¤", val:50},
+{sym:"⊗", val:10},
+{sym:"♡", val:5},
+{sym:"♥", val:1}
+
+]
+
+function toSymbols(n){
+
+let raw = String(n).replace(/[^\d]/g,"")
+let num = parseInt(raw)
+
+if(!num)return ""
+
+let out=""
+
+for(let s of SYMBOLS){
+
+while(num>=s.val){
+
+out+=s.sym
+num-=s.val
+
+}
+
+}
+
+return out
+
+}
+
+function loadImage(file){
+
+return new Promise(res=>{
+
+const url=URL.createObjectURL(file)
+
+const img=new Image()
+
+img.onload=()=>res(img)
+
+img.src=url
+
+})
+
+}
+
+$("portrait").onchange=async e=>{
+
+portraitImg=await loadImage(e.target.files[0])
+
+render()
+
+}
+
+$("stampSelect").onchange=e=>{
+
+if(!e.target.value){
+
+stampImg=null
+render()
+return
+
+}
+
+const img=new Image()
+
+img.src=e.target.value
+
+img.onload=()=>{
+
+stampImg=img
+render()
+
+}
+
+}
+
+$("zoom").oninput=e=>{
+
+imgState.scale=parseFloat(e.target.value)
+render()
+
+}
+
+$("rot").oninput=e=>{
+
+imgState.rot=parseFloat(e.target.value)
+render()
+
+}
+
+function getPhotoRect(){
+
+return{
+
+x:canvas.width*0.16,
+y:canvas.height*0.24,
+w:canvas.width*0.68,
+h:canvas.height*0.44
+
+}
+
+}
+
+function drawPortrait(){
+
+if(!portraitImg)return
+
+const rect=getPhotoRect()
+
+const cx=rect.x+rect.w/2
+const cy=rect.y+rect.h/2
+
+ctx.save()
+
+ctx.beginPath()
+ctx.rect(rect.x,rect.y,rect.w,rect.h)
+ctx.clip()
+
+ctx.translate(cx+imgState.x,cy+imgState.y)
+
+ctx.rotate(imgState.rot*Math.PI/180)
+
+ctx.scale(imgState.scale,imgState.scale)
+
+ctx.drawImage(portraitImg,-rect.w/2,-rect.h/2,rect.w,rect.h)
+
+ctx.restore()
+
+}
+
+function drawStamp(){
+
+if(!stampImg)return
+
+const size=canvas.width*0.25
+
+ctx.save()
+
+ctx.globalAlpha=0.9
+ctx.globalCompositeOperation="multiply"
+
+ctx.drawImage(
+stampImg,
+canvas.width*0.03,
+canvas.height*0.73,
+size,
+size
+)
+
+ctx.restore()
+
+}
+
+function drawText(){
+
+ctx.fillStyle="#2a1a10"
+
+ctx.font="700 38px Libre Baskerville"
+
+ctx.fillText(
+$("alias").value,
+canvas.width*0.34,
+canvas.height*0.229
+)
+
+ctx.fillText(
+$("status").value,
+canvas.width*0.30,
+canvas.height*0.275
+)
+
+ctx.fillText(
+$("region").value,
+canvas.width*0.44,
+canvas.height*0.315
+)
+
+ctx.textAlign="center"
+
+ctx.font="700 60px Libre Baskerville"
+
+ctx.fillText(
+toSymbols($("rewardNumber").value),
+canvas.width/2,
+canvas.height*0.83
+)
+
+ctx.textAlign="left"
+
+ctx.font="700 26px Libre Baskerville"
+
+ctx.fillText(
+$("code").value,
+canvas.width*0.06,
+canvas.height*0.965
+)
+
+}
+
+function render(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+drawPortrait()
+
+ctx.drawImage(templateImg,0,0,canvas.width,canvas.height)
+
+drawText()
+
+drawStamp()
+
+}
+
+let dragging=false
+let last={x:0,y:0}
+
+canvas.onmousedown=e=>{
+
+dragging=true
+
+last={x:e.offsetX,y:e.offsetY}
+
+}
+
+window.onmouseup=()=>dragging=false
+
+window.onmousemove=e=>{
+
+if(!dragging)return
+
+imgState.x+=e.movementX*2
+imgState.y+=e.movementY*2
+
+render()
+
+}
+
+$("download").onclick=()=>{
+
+const a=document.createElement("a")
+
+a.href=canvas.toDataURL("image/png")
+
+a.download="cartaz.png"
+
+a.click()
+
+}
+
+templateImg.onload=render
+
+</script>
+
+</body>
+</html>
