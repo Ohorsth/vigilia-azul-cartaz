@@ -1,4 +1,4 @@
-
+```html
 <!doctype html>
 <html lang="pt-br">
 <head>
@@ -94,6 +94,7 @@ canvas{
 width:min(720px,98%);
 height:auto;
 border-radius:14px;
+cursor:grab;
 }
 
 </style>
@@ -107,6 +108,17 @@ border-radius:14px;
 
 <label>IMAGEM DO PERSONAGEM</label>
 <input id="portrait" type="file">
+
+<label>ZOOM</label>
+<input id="zoom" type="range" min="0.4" max="3" step="0.01" value="1">
+
+<label>ROTAÇÃO</label>
+<input id="rot" type="range" min="-180" max="180" step="1" value="0">
+
+<div class="btns">
+<button id="centerImg">CENTRALIZAR</button>
+<button id="resetImg">RESETAR</button>
+</div>
 
 <label>NOME</label>
 <input id="name">
@@ -155,6 +167,10 @@ border-radius:14px;
 <button id="download">BAIXAR PNG</button>
 </div>
 
+<div class="btns">
+<button onclick="window.location.href='index.html'">VOLTAR AO MENU</button>
+</div>
+
 </div>
 
 <div class="panel preview">
@@ -174,18 +190,18 @@ let portraitImg = null
 const templateImg = new Image()
 templateImg.src = "TempleteVigiliaAzul.png"
 
-templateImg.onload = ()=>{
-render()
+const imgState = {
+x:0,
+y:0,
+scale:1,
+rot:0
 }
 
-templateImg.onerror = ()=>{
-console.error("TEMPLATE NÃO CARREGOU. CONFIRME O NOME DO ARQUIVO.")
-}
+templateImg.onload = ()=>render()
 
 function formatBounty(n){
 
 const raw = String(n).replace(/[^\d]/g,'')
-
 if(!raw) return ""
 
 return raw.replace(/\B(?=(\d{3})+(?!\d))/g,".")
@@ -196,22 +212,47 @@ function upper(text){
 return (text || "").toUpperCase()
 }
 
-function render(){
+function getPhotoRect(){
 
-if(!templateImg.complete) return
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-const rect={
+return{
 x:canvas.width*0.16,
 y:canvas.height*0.23,
 w:canvas.width*0.68,
 h:canvas.height*0.43
 }
 
-if(portraitImg){
-ctx.drawImage(portraitImg,rect.x,rect.y,rect.w,rect.h)
 }
+
+function drawPortrait(){
+
+if(!portraitImg) return
+
+const rect=getPhotoRect()
+
+const cx=rect.x+rect.w/2
+const cy=rect.y+rect.h/2
+
+ctx.save()
+
+ctx.beginPath()
+ctx.rect(rect.x,rect.y,rect.w,rect.h)
+ctx.clip()
+
+ctx.translate(cx+imgState.x,cy+imgState.y)
+ctx.rotate(imgState.rot*Math.PI/180)
+ctx.scale(imgState.scale,imgState.scale)
+
+ctx.drawImage(portraitImg,-rect.w/2,-rect.h/2,rect.w,rect.h)
+
+ctx.restore()
+
+}
+
+function render(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+drawPortrait()
 
 ctx.drawImage(templateImg,0,0,canvas.width,canvas.height)
 
@@ -233,18 +274,56 @@ ctx.fillText(reward, canvas.width*0.2, canvas.height*0.831)
 
 }
 
-$("portrait").addEventListener("change",e=>{
+$("portrait").onchange=e=>{
 
-const file = e.target.files[0]
-if(!file) return
+const file=e.target.files[0]
+if(!file)return
 
-const url = URL.createObjectURL(file)
+const url=URL.createObjectURL(file)
 
-portraitImg = new Image()
+portraitImg=new Image()
 portraitImg.onload=()=>render()
 portraitImg.src=url
 
-})
+}
+
+$("zoom").oninput=e=>{
+imgState.scale=parseFloat(e.target.value)
+render()
+}
+
+$("rot").oninput=e=>{
+imgState.rot=parseFloat(e.target.value)
+render()
+}
+
+$("centerImg").onclick=()=>{
+imgState.x=0
+imgState.y=0
+render()
+}
+
+$("resetImg").onclick=()=>{
+imgState.x=0
+imgState.y=0
+imgState.scale=1
+imgState.rot=0
+$("zoom").value=1
+$("rot").value=0
+render()
+}
+
+let dragging=false
+
+canvas.onmousedown=()=>dragging=true
+window.onmouseup=()=>dragging=false
+
+window.onmousemove=e=>{
+if(!dragging) return
+imgState.x+=e.movementX*2
+imgState.y+=e.movementY*2
+render()
+}
 
 $("render").onclick=render
 
@@ -267,3 +346,4 @@ $(id).addEventListener("input",render)
 
 </body>
 </html>
+```
