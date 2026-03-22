@@ -10,18 +10,15 @@
       --page-width: 900px;
       --page-height: 1400px;
 
-      /* posição do título */
       --title-top: 245px;
       --title-left: 110px;
       --title-width: 680px;
 
-      /* posição da imagem */
       --image-top: 430px;
       --image-left: 90px;
       --image-width: 720px;
       --image-height: 350px;
 
-      /* posição do texto */
       --text-top: 845px;
       --text-left: 80px;
       --text-width: 740px;
@@ -45,7 +42,7 @@
     }
 
     .toolbar{
-      width: min(100%, 1100px);
+      width: min(100%, 1200px);
       background: #f3f3f3;
       border: 1px solid #ccc;
       border-radius: 12px;
@@ -64,6 +61,7 @@
     .control label{
       font-size: 14px;
       font-weight: 700;
+      color: #111;
     }
 
     .control input[type="text"],
@@ -83,6 +81,18 @@
     .control input[type="text"]{
       padding: 10px;
       font-size: 14px;
+    }
+
+    .range-value{
+      font-size: 12px;
+      color: #444;
+    }
+
+    .actions{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-start;
     }
 
     .page-wrap{
@@ -118,6 +128,7 @@
       outline: none;
       resize: none;
       overflow: hidden;
+      z-index: 3;
     }
 
     .headline[contenteditable="true"]:empty::before{
@@ -136,14 +147,29 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 2;
+    }
+
+    .photo-inner{
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .photo-frame img{
+      max-width: none;
+      max-height: none;
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: none;
-      filter: sepia(0%);
+      transform-origin: center center;
+      user-select: none;
+      pointer-events: none;
     }
 
     .photo-placeholder{
@@ -165,19 +191,17 @@
       left: var(--text-left);
       width: var(--text-width);
       height: var(--text-height);
-
       font-size: 23px;
       line-height: 1.55;
       color: #111;
       text-align: justify;
-
       column-count: 2;
       column-gap: 34px;
       column-fill: auto;
-
       overflow: hidden;
       white-space: pre-wrap;
       word-break: break-word;
+      z-index: 3;
     }
 
     .article-text[contenteditable="true"]:empty::before{
@@ -203,7 +227,19 @@
     }
 
     button:hover{
-      opacity: .9;
+      opacity: .92;
+    }
+
+    .btn-secondary{
+      background: #3b3b3b;
+    }
+
+    .btn-download{
+      background: #0d5f2f;
+    }
+
+    .btn-back{
+      background: #1b3a5a;
     }
 
     @media (max-width: 980px){
@@ -233,8 +269,33 @@
     </div>
 
     <div class="control">
-      <label for="sepiaRange">Filtro sépia da imagem</label>
+      <label for="sepiaRange">Filtro sépia</label>
       <input type="range" id="sepiaRange" min="0" max="100" value="0">
+      <div class="range-value"><span id="sepiaValue">0</span>%</div>
+    </div>
+
+    <div class="control">
+      <label for="zoomRange">Zoom da imagem</label>
+      <input type="range" id="zoomRange" min="50" max="250" value="100">
+      <div class="range-value"><span id="zoomValue">100</span>%</div>
+    </div>
+
+    <div class="control">
+      <label for="rotateRange">Rotação</label>
+      <input type="range" id="rotateRange" min="-180" max="180" value="0">
+      <div class="range-value"><span id="rotateValue">0</span>°</div>
+    </div>
+
+    <div class="control">
+      <label for="offsetXRange">Mover imagem horizontal</label>
+      <input type="range" id="offsetXRange" min="-300" max="300" value="0">
+      <div class="range-value"><span id="offsetXValue">0</span>px</div>
+    </div>
+
+    <div class="control">
+      <label for="offsetYRange">Mover imagem vertical</label>
+      <input type="range" id="offsetYRange" min="-300" max="300" value="0">
+      <div class="range-value"><span id="offsetYValue">0</span>px</div>
     </div>
 
     <div class="control">
@@ -244,39 +305,97 @@
 
     <div class="control">
       <label>Ações</label>
-      <button id="limparImagem">Remover imagem</button>
+      <div class="actions">
+        <button id="voltarIndex" class="btn-back" type="button">Voltar</button>
+        <button id="baixarJornal" class="btn-download" type="button">Baixar jornal</button>
+        <button id="resetImagem" class="btn-secondary" type="button">Resetar imagem</button>
+        <button id="limparImagem" class="btn-secondary" type="button">Remover imagem</button>
+      </div>
     </div>
   </div>
 
   <div class="page-wrap">
-    <div class="page">
+    <div class="page" id="page">
       <div id="headline" class="headline" contenteditable="true"></div>
 
       <div class="photo-frame">
-        <div id="placeholder" class="photo-placeholder">
-          Espaço para imagem
+        <div class="photo-inner">
+          <div id="placeholder" class="photo-placeholder">
+            Espaço para imagem
+          </div>
+          <img id="previewImage" alt="Imagem da matéria">
         </div>
-        <img id="previewImage" alt="Imagem da matéria">
       </div>
 
       <div id="articleText" class="article-text" contenteditable="true"></div>
     </div>
   </div>
 
-  <div class="hint">
-    Coloque o arquivo <strong>jornal.png</strong> na mesma pasta deste HTML.
-  </div>
+  <div class="hint"></div>
 
   <script>
     const tituloInput = document.getElementById("tituloInput");
     const textoInput = document.getElementById("textoInput");
     const imagemInput = document.getElementById("imagemInput");
     const sepiaRange = document.getElementById("sepiaRange");
+    const zoomRange = document.getElementById("zoomRange");
+    const rotateRange = document.getElementById("rotateRange");
+    const offsetXRange = document.getElementById("offsetXRange");
+    const offsetYRange = document.getElementById("offsetYRange");
+
+    const sepiaValue = document.getElementById("sepiaValue");
+    const zoomValue = document.getElementById("zoomValue");
+    const rotateValue = document.getElementById("rotateValue");
+    const offsetXValue = document.getElementById("offsetXValue");
+    const offsetYValue = document.getElementById("offsetYValue");
+
     const previewImage = document.getElementById("previewImage");
     const placeholder = document.getElementById("placeholder");
     const headline = document.getElementById("headline");
     const articleText = document.getElementById("articleText");
     const limparImagem = document.getElementById("limparImagem");
+    const resetImagem = document.getElementById("resetImagem");
+    const baixarJornal = document.getElementById("baixarJornal");
+    const voltarIndex = document.getElementById("voltarIndex");
+    const page = document.getElementById("page");
+
+    let imageState = {
+      sepia: 0,
+      zoom: 100,
+      rotate: 0,
+      offsetX: 0,
+      offsetY: 0
+    };
+
+    function updateImageTransform(){
+      previewImage.style.filter = `sepia(${imageState.sepia}%)`;
+      previewImage.style.transform =
+        `translate(${imageState.offsetX}px, ${imageState.offsetY}px) scale(${imageState.zoom / 100}) rotate(${imageState.rotate}deg)`;
+
+      sepiaValue.textContent = imageState.sepia;
+      zoomValue.textContent = imageState.zoom;
+      rotateValue.textContent = imageState.rotate;
+      offsetXValue.textContent = imageState.offsetX;
+      offsetYValue.textContent = imageState.offsetY;
+    }
+
+    function resetImageControls(){
+      imageState = {
+        sepia: 0,
+        zoom: 100,
+        rotate: 0,
+        offsetX: 0,
+        offsetY: 0
+      };
+
+      sepiaRange.value = 0;
+      zoomRange.value = 100;
+      rotateRange.value = 0;
+      offsetXRange.value = 0;
+      offsetYRange.value = 0;
+
+      updateImageTransform();
+    }
 
     tituloInput.addEventListener("input", () => {
       headline.textContent = tituloInput.value;
@@ -303,12 +422,38 @@
         previewImage.src = e.target.result;
         previewImage.style.display = "block";
         placeholder.style.display = "none";
+        resetImageControls();
       };
       reader.readAsDataURL(file);
     });
 
     sepiaRange.addEventListener("input", () => {
-      previewImage.style.filter = `sepia(${sepiaRange.value}%)`;
+      imageState.sepia = Number(sepiaRange.value);
+      updateImageTransform();
+    });
+
+    zoomRange.addEventListener("input", () => {
+      imageState.zoom = Number(zoomRange.value);
+      updateImageTransform();
+    });
+
+    rotateRange.addEventListener("input", () => {
+      imageState.rotate = Number(rotateRange.value);
+      updateImageTransform();
+    });
+
+    offsetXRange.addEventListener("input", () => {
+      imageState.offsetX = Number(offsetXRange.value);
+      updateImageTransform();
+    });
+
+    offsetYRange.addEventListener("input", () => {
+      imageState.offsetY = Number(offsetYRange.value);
+      updateImageTransform();
+    });
+
+    resetImagem.addEventListener("click", () => {
+      resetImageControls();
     });
 
     limparImagem.addEventListener("click", () => {
@@ -316,7 +461,190 @@
       previewImage.style.display = "none";
       placeholder.style.display = "flex";
       imagemInput.value = "";
+      resetImageControls();
     });
+
+    voltarIndex.addEventListener("click", () => {
+      location.href = "index.html";
+    });
+
+    baixarJornal.addEventListener("click", async () => {
+      const originalPlaceholderDisplay = placeholder.style.display;
+      placeholder.style.display = "none";
+
+      try {
+        const canvas = document.createElement("canvas");
+        const scale = 2;
+        canvas.width = 900 * scale;
+        canvas.height = 1400 * scale;
+        const ctx = canvas.getContext("2d");
+
+        const bg = new Image();
+        bg.crossOrigin = "anonymous";
+        bg.src = "jornal.png";
+
+        await new Promise((resolve, reject) => {
+          bg.onload = resolve;
+          bg.onerror = reject;
+        });
+
+        ctx.scale(scale, scale);
+
+        ctx.drawImage(bg, 0, 0, 900, 1400);
+
+        if (previewImage.src && previewImage.style.display !== "none") {
+          const img = new Image();
+          img.src = previewImage.src;
+
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+
+          const frameX = 90;
+          const frameY = 430;
+          const frameW = 720;
+          const frameH = 350;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(frameX, frameY, frameW, frameH);
+          ctx.clip();
+
+          const centerX = frameX + frameW / 2;
+          const centerY = frameY + frameH / 2;
+
+          ctx.translate(centerX + imageState.offsetX, centerY + imageState.offsetY);
+          ctx.rotate(imageState.rotate * Math.PI / 180);
+          ctx.scale(imageState.zoom / 100, imageState.zoom / 100);
+
+          if (imageState.sepia > 0) {
+            ctx.filter = `sepia(${imageState.sepia}%)`;
+          } else {
+            ctx.filter = "none";
+          }
+
+          ctx.drawImage(img, -frameW / 2, -frameH / 2, frameW, frameH);
+          ctx.filter = "none";
+          ctx.restore();
+        }
+
+        ctx.fillStyle = "#111";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.font = "700 34px 'Times New Roman', Georgia, serif";
+
+        const titleText = headline.textContent || "";
+        wrapTextCenter(ctx, titleText.toUpperCase(), 110 + (680 / 2), 245, 680, 40);
+
+        drawColumnsText(
+          ctx,
+          articleText.textContent || "",
+          80,
+          845,
+          740,
+          360,
+          2,
+          34,
+          23,
+          1.55,
+          "Georgia"
+        );
+
+        const link = document.createElement("a");
+        link.download = "eco-dos-mares.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+      } catch (error) {
+        alert("Não foi possível gerar a imagem. Verifique se o arquivo jornal.png está na mesma pasta.");
+        console.error(error);
+      } finally {
+        placeholder.style.display = originalPlaceholderDisplay;
+      }
+    });
+
+    function wrapTextCenter(ctx, text, centerX, startY, maxWidth, lineHeight){
+      const words = text.split(" ");
+      let line = "";
+      let y = startY;
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + " ";
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+
+        if (testWidth > maxWidth && n > 0) {
+          ctx.fillText(line.trim(), centerX, y);
+          line = words[n] + " ";
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+
+      if (line.trim()) {
+        ctx.fillText(line.trim(), centerX, y);
+      }
+    }
+
+    function drawColumnsText(ctx, text, x, y, width, height, columns, gap, fontSize, lineHeightMult, fontFamily){
+      const colWidth = (width - gap * (columns - 1)) / columns;
+      const lineHeight = fontSize * lineHeightMult;
+
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = "#111";
+      ctx.font = `${fontSize}px ${fontFamily}`;
+
+      const paragraphs = text.split("\n");
+      const lines = [];
+
+      paragraphs.forEach(paragraph => {
+        if (paragraph.trim() === "") {
+          lines.push("");
+          return;
+        }
+
+        const words = paragraph.split(" ");
+        let line = "";
+
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + " ";
+          const testWidth = ctx.measureText(testLine).width;
+
+          if (testWidth > colWidth && i > 0) {
+            lines.push(line.trim());
+            line = words[i] + " ";
+          } else {
+            line = testLine;
+          }
+        }
+
+        if (line.trim()) {
+          lines.push(line.trim());
+        }
+        lines.push("");
+      });
+
+      let col = 0;
+      let cursorY = y;
+
+      for (let i = 0; i < lines.length; i++) {
+        if (cursorY + lineHeight > y + height) {
+          col++;
+          cursorY = y;
+        }
+
+        if (col >= columns) break;
+
+        const drawX = x + col * (colWidth + gap);
+        ctx.fillText(lines[i], drawX, cursorY);
+        cursorY += lineHeight;
+      }
+    }
+
+    updateImageTransform();
   </script>
 
 </body>
