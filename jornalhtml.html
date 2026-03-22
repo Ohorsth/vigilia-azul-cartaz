@@ -10,16 +10,19 @@
       --page-width: 900px;
       --page-height: 1400px;
 
-      --title-top: 300px;
+      /* título mais para baixo */
+      --title-top: 340px;
       --title-left: 110px;
       --title-width: 680px;
 
+      /* imagem */
       --image-top: 420px;
       --image-left: 60px;
       --image-width: 780px;
       --image-height: 400px;
 
-      --text-top: 900px;
+      /* texto mais para baixo */
+      --text-top: 910px;
       --text-left: 80px;
       --text-width: 740px;
       --text-height: 360px;
@@ -119,14 +122,13 @@
       font-family: "Times New Roman", Georgia, serif;
       font-weight: 700;
       font-size: 34px;
-      line-height: 1.1;
+      line-height: 1.05;
       letter-spacing: 0.5px;
       color: #111;
       text-transform: uppercase;
       background: transparent;
       border: none;
       outline: none;
-      resize: none;
       overflow: hidden;
       z-index: 3;
     }
@@ -148,7 +150,7 @@
       align-items: center;
       justify-content: center;
       z-index: 2;
-      border: 2px solid rgba(0,0,0,0.15);
+      border: 2px solid rgba(0,0,0,0.10);
     }
 
     .photo-inner{
@@ -212,13 +214,6 @@
     .article-text[contenteditable="true"]:empty::before{
       content: "Digite o texto da matéria aqui...";
       color: rgba(0,0,0,.45);
-    }
-
-    .hint{
-      width: min(100%, 1100px);
-      color: #ddd;
-      font-size: 14px;
-      text-align: center;
     }
 
     button{
@@ -335,8 +330,6 @@
       <div id="articleText" class="article-text" contenteditable="true"></div>
     </div>
   </div>
-
-  <div class="hint"></div>
 
   <script>
     const tituloInput = document.getElementById("tituloInput");
@@ -472,12 +465,166 @@
       location.href = "index.html";
     });
 
-    baixarJornal.addEventListener("click", () => {
-      alert("O botão de baixar está mantido na estrutura, mas se você quiser eu posso te mandar agora a versão com exportação PNG já corrigida também.");
+    baixarJornal.addEventListener("click", async () => {
+      try {
+        const canvas = document.createElement("canvas");
+        const scale = 2;
+        canvas.width = 900 * scale;
+        canvas.height = 1400 * scale;
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(scale, scale);
+
+        const bg = new Image();
+        bg.src = "jornal.png";
+
+        await new Promise((resolve, reject) => {
+          bg.onload = resolve;
+          bg.onerror = reject;
+        });
+
+        ctx.drawImage(bg, 0, 0, 900, 1400);
+
+        if (previewImage.src && previewImage.style.display !== "none") {
+          const img = new Image();
+          img.src = previewImage.src;
+
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+
+          const frameX = 60;
+          const frameY = 420;
+          const frameW = 780;
+          const frameH = 400;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(frameX, frameY, frameW, frameH);
+          ctx.clip();
+
+          const centerX = frameX + frameW / 2 + imageState.offsetX;
+          const centerY = frameY + frameH / 2 + imageState.offsetY;
+
+          ctx.translate(centerX, centerY);
+          ctx.rotate(imageState.rotate * Math.PI / 180);
+          ctx.scale(imageState.zoom / 100, imageState.zoom / 100);
+
+          ctx.filter = `sepia(${imageState.sepia}%)`;
+
+          const drawW = frameW;
+          const drawH = frameH;
+
+          ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+          ctx.filter = "none";
+          ctx.restore();
+        }
+
+        ctx.fillStyle = "#111";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.font = "700 34px 'Times New Roman'";
+
+        drawWrappedCenteredText(ctx, (headline.textContent || "").toUpperCase(), 450, 340, 680, 36);
+
+        drawColumnsText(
+          ctx,
+          articleText.textContent || "",
+          80, 910, 740, 360,
+          2, 34,
+          23, 1.55,
+          "Georgia"
+        );
+
+        const link = document.createElement("a");
+        link.download = "eco-dos-mares.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+      } catch (error) {
+        alert("Erro ao baixar o jornal. Confirme se jornal.png está na mesma pasta.");
+        console.error(error);
+      }
     });
+
+    function drawWrappedCenteredText(ctx, text, centerX, startY, maxWidth, lineHeight){
+      const words = text.split(" ");
+      let line = "";
+      let y = startY;
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + " ";
+        if (ctx.measureText(testLine).width > maxWidth && i > 0) {
+          ctx.fillText(line.trim(), centerX, y);
+          line = words[i] + " ";
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+
+      if (line.trim()) {
+        ctx.fillText(line.trim(), centerX, y);
+      }
+    }
+
+    function drawColumnsText(ctx, text, x, y, width, height, columns, gap, fontSize, lineHeightMult, fontFamily){
+      const colWidth = (width - gap * (columns - 1)) / columns;
+      const lineHeight = fontSize * lineHeightMult;
+
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = "#111";
+      ctx.font = `${fontSize}px ${fontFamily}`;
+
+      const paragraphs = text.split("\n");
+      const lines = [];
+
+      paragraphs.forEach(paragraph => {
+        if (paragraph.trim() === "") {
+          lines.push("");
+          return;
+        }
+
+        const words = paragraph.split(" ");
+        let line = "";
+
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + " ";
+          if (ctx.measureText(testLine).width > colWidth && i > 0) {
+            lines.push(line.trim());
+            line = words[i] + " ";
+          } else {
+            line = testLine;
+          }
+        }
+
+        if (line.trim()) {
+          lines.push(line.trim());
+        }
+
+        lines.push("");
+      });
+
+      let col = 0;
+      let currentY = y;
+
+      for (let i = 0; i < lines.length; i++) {
+        if (currentY + lineHeight > y + height) {
+          col++;
+          currentY = y;
+        }
+
+        if (col >= columns) break;
+
+        const drawX = x + col * (colWidth + gap);
+        ctx.fillText(lines[i], drawX, currentY);
+        currentY += lineHeight;
+      }
+    }
 
     updateImageTransform();
   </script>
-
 </body>
 </html>
