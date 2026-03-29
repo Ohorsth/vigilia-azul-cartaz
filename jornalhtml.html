@@ -189,8 +189,27 @@
       z-index: 3;
       display: none;
     }
-
+    
+ .article-text2{
+      position: absolute;
+      font-size: 20px;
+      line-height: 1.4;
+      color: #111;
+      text-align: justify;
+      column-count: 1;
+      column-gap: 40px;
+      column-fill: auto;
+      overflow: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      z-index: 3;
+      display: none;
+    }
     .article-text.active{
+      display: block;
+    }
+    
+      .article-text2.active{
       display: block;
     }
 
@@ -327,7 +346,7 @@
       </div>
 
       <div id="textBlock1" class="article-text" contenteditable="true"></div>
-      <div id="textBlock2" class="article-text" contenteditable="true"></div>
+      <div id="textBlock2" class="article-text2" contenteditable="true"></div>
       <div id="textBlock3" class="article-text" contenteditable="true"></div>
     </div>
   </div>
