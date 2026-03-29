@@ -9,23 +9,6 @@
     :root{
       --page-width: 900px;
       --page-height: 1400px;
-
-      /* título */
-      --title-top: 400px;
-      --title-left: 110px;
-      --title-width: 680px;
-
-      /* imagem */
-      --image-top: 470px;
-      --image-left: 60px;
-      --image-width: 800px;
-      --image-height: 500px;
-
-      /* texto */
-      --text-top: 995px;
-      --text-left: 70px;
-      --text-width: 760px;
-      --text-height: 280px;
     }
 
     *{
@@ -45,7 +28,7 @@
     }
 
     .toolbar{
-      width: min(100%, 1200px);
+      width: min(100%, 1300px);
       background: #f3f3f3;
       border: 1px solid #ccc;
       border-radius: 12px;
@@ -70,7 +53,8 @@
     .control input[type="text"],
     .control input[type="file"],
     .control textarea,
-    .control input[type="range"]{
+    .control input[type="range"],
+    .control select{
       width: 100%;
     }
 
@@ -82,7 +66,8 @@
       font-family: inherit;
     }
 
-    .control input[type="text"]{
+    .control input[type="text"],
+    .control select{
       padding: 10px;
       font-size: 14px;
     }
@@ -109,16 +94,15 @@
       position: relative;
       width: var(--page-width);
       height: var(--page-height);
-      background: url("jornall.png") center center / cover no-repeat;
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
       box-shadow: 0 20px 50px rgba(0,0,0,.35);
       overflow: hidden;
     }
 
     .headline{
       position: absolute;
-      top: var(--title-top);
-      left: var(--title-left);
-      width: var(--title-width);
       text-align: center;
       font-family: "Times New Roman", Georgia, serif;
       font-weight: 700;
@@ -141,10 +125,6 @@
 
     .photo-frame{
       position: absolute;
-      top: var(--image-top);
-      left: var(--image-left);
-      width: var(--image-width);
-      height: var(--image-height);
       overflow: hidden;
       background: transparent;
       display: flex;
@@ -196,21 +176,22 @@
 
     .article-text{
       position: absolute;
-      top: var(--text-top);
-      left: var(--text-left);
-      width: var(--text-width);
-      height: var(--text-height);
-      font-size: 18px;
-      line-height: 1;
+      font-size: 23px;
+      line-height: 1.55;
       color: #111;
       text-align: justify;
       column-count: 2;
-      column-gap: 45px;
+      column-gap: 34px;
       column-fill: auto;
       overflow: hidden;
       white-space: pre-wrap;
       word-break: break-word;
       z-index: 3;
+      display: none;
+    }
+
+    .article-text.active{
+      display: block;
     }
 
     .article-text[contenteditable="true"]:empty::before{
@@ -261,6 +242,14 @@
 
   <div class="toolbar">
     <div class="control">
+      <label for="layoutSelect">Layout</label>
+      <select id="layoutSelect">
+        <option value="jornal1">Capa destaque</option>
+        <option value="jornal2">Notícia maior (4 blocos)</option>
+      </select>
+    </div>
+
+    <div class="control">
       <label for="tituloInput">Título</label>
       <input type="text" id="tituloInput" placeholder="Digite o título da matéria">
     </div>
@@ -301,8 +290,18 @@
     </div>
 
     <div class="control">
-      <label for="textoInput">Texto da matéria</label>
-      <textarea id="textoInput" placeholder="Escreva a notícia aqui..."></textarea>
+      <label for="textoInput1">Texto bloco 1</label>
+      <textarea id="textoInput1" placeholder="Escreva o texto do bloco 1..."></textarea>
+    </div>
+
+    <div class="control">
+      <label for="textoInput2">Texto bloco 2</label>
+      <textarea id="textoInput2" placeholder="Escreva o texto do bloco 2..."></textarea>
+    </div>
+
+    <div class="control">
+      <label for="textoInput3">Texto bloco 3</label>
+      <textarea id="textoInput3" placeholder="Escreva o texto do bloco 3..."></textarea>
     </div>
 
     <div class="control">
@@ -320,22 +319,49 @@
     <div class="page" id="page">
       <div id="headline" class="headline" contenteditable="true"></div>
 
-      <div class="photo-frame">
+      <div id="imageBlock" class="photo-frame">
         <div class="photo-inner">
-          <div id="placeholder" class="photo-placeholder">
-            Espaço para imagem
-          </div>
+          <div id="placeholder" class="photo-placeholder">Espaço para imagem</div>
           <img id="previewImage" alt="Imagem da matéria">
         </div>
       </div>
 
-      <div id="articleText" class="article-text" contenteditable="true"></div>
+      <div id="textBlock1" class="article-text" contenteditable="true"></div>
+      <div id="textBlock2" class="article-text" contenteditable="true"></div>
+      <div id="textBlock3" class="article-text" contenteditable="true"></div>
     </div>
   </div>
 
   <script>
+    const layouts = {
+      jornal1: {
+        background: "jornal1.png",
+        title: { top: 340, left: 110, width: 680 },
+        image: { top: 420, left: 60, width: 780, height: 400 },
+        texts: [
+          { top: 910, left: 80, width: 740, height: 360, active: true },
+          { top: 0, left: 0, width: 0, height: 0, active: false },
+          { top: 0, left: 0, width: 0, height: 0, active: false }
+        ]
+      },
+
+      jornal2: {
+        background: "jorgal2.png",
+        title: { top: 340, left: 110, width: 680 },
+        image: { top: 430, left: 60, width: 340, height: 250 },
+        texts: [
+          { top: 430, left: 450, width: 330, height: 250, active: true },
+          { top: 740, left: 60, width: 330, height: 350, active: true },
+          { top: 740, left: 450, width: 330, height: 350, active: true }
+        ]
+      }
+    };
+
+    const layoutSelect = document.getElementById("layoutSelect");
     const tituloInput = document.getElementById("tituloInput");
-    const textoInput = document.getElementById("textoInput");
+    const textoInput1 = document.getElementById("textoInput1");
+    const textoInput2 = document.getElementById("textoInput2");
+    const textoInput3 = document.getElementById("textoInput3");
     const imagemInput = document.getElementById("imagemInput");
     const sepiaRange = document.getElementById("sepiaRange");
     const zoomRange = document.getElementById("zoomRange");
@@ -349,10 +375,15 @@
     const offsetXValue = document.getElementById("offsetXValue");
     const offsetYValue = document.getElementById("offsetYValue");
 
+    const page = document.getElementById("page");
     const previewImage = document.getElementById("previewImage");
     const placeholder = document.getElementById("placeholder");
     const headline = document.getElementById("headline");
-    const articleText = document.getElementById("articleText");
+    const textBlock1 = document.getElementById("textBlock1");
+    const textBlock2 = document.getElementById("textBlock2");
+    const textBlock3 = document.getElementById("textBlock3");
+    const imageBlock = document.getElementById("imageBlock");
+
     const limparImagem = document.getElementById("limparImagem");
     const resetImagem = document.getElementById("resetImagem");
     const baixarJornal = document.getElementById("baixarJornal");
@@ -396,20 +427,80 @@
       updateImageTransform();
     }
 
+    function applyLayout(layoutName){
+      const layout = layouts[layoutName];
+      if (!layout) return;
+
+      page.style.backgroundImage = `url("${layout.background}")`;
+
+      headline.style.top = `${layout.title.top}px`;
+      headline.style.left = `${layout.title.left}px`;
+      headline.style.width = `${layout.title.width}px`;
+
+      imageBlock.style.top = `${layout.image.top}px`;
+      imageBlock.style.left = `${layout.image.left}px`;
+      imageBlock.style.width = `${layout.image.width}px`;
+      imageBlock.style.height = `${layout.image.height}px`;
+
+      const blocks = [textBlock1, textBlock2, textBlock3];
+
+      layout.texts.forEach((cfg, index) => {
+        const block = blocks[index];
+        block.style.top = `${cfg.top}px`;
+        block.style.left = `${cfg.left}px`;
+        block.style.width = `${cfg.width}px`;
+        block.style.height = `${cfg.height}px`;
+
+        if (cfg.active) {
+          block.classList.add("active");
+        } else {
+          block.classList.remove("active");
+        }
+      });
+
+      if (layoutName === "jornal1") {
+        textoInput2.parentElement.style.display = "none";
+        textoInput3.parentElement.style.display = "none";
+      } else {
+        textoInput2.parentElement.style.display = "flex";
+        textoInput3.parentElement.style.display = "flex";
+      }
+    }
+
     tituloInput.addEventListener("input", () => {
       headline.textContent = tituloInput.value;
     });
 
-    textoInput.addEventListener("input", () => {
-      articleText.textContent = textoInput.value;
+    textoInput1.addEventListener("input", () => {
+      textBlock1.textContent = textoInput1.value;
+    });
+
+    textoInput2.addEventListener("input", () => {
+      textBlock2.textContent = textoInput2.value;
+    });
+
+    textoInput3.addEventListener("input", () => {
+      textBlock3.textContent = textoInput3.value;
     });
 
     headline.addEventListener("input", () => {
       tituloInput.value = headline.textContent.trim();
     });
 
-    articleText.addEventListener("input", () => {
-      textoInput.value = articleText.textContent;
+    textBlock1.addEventListener("input", () => {
+      textoInput1.value = textBlock1.textContent;
+    });
+
+    textBlock2.addEventListener("input", () => {
+      textoInput2.value = textBlock2.textContent;
+    });
+
+    textBlock3.addEventListener("input", () => {
+      textoInput3.value = textBlock3.textContent;
+    });
+
+    layoutSelect.addEventListener("change", () => {
+      applyLayout(layoutSelect.value);
     });
 
     imagemInput.addEventListener("change", (event) => {
@@ -466,6 +557,9 @@
     voltarIndex.addEventListener("click", () => {
       location.href = "index.html";
     });
+
+    applyLayout("jornal1");
+    updateImageTransform();
   </script>
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -487,12 +581,10 @@
         link.click();
 
       } catch (error) {
-        alert("Erro ao baixar o jornal. Verifique se jornall.png está na mesma pasta e tente novamente.");
+        alert("Erro ao baixar o jornal. Verifique se jornal1.png e jorgal2.png estão na mesma pasta.");
         console.error(error);
       }
     });
-
-    updateImageTransform();
   </script>
 </body>
 </html>
