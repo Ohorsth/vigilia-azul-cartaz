@@ -176,27 +176,12 @@
 
     .article-text{
       position: absolute;
-      font-size: 18px;
-      line-height: 1;
+      font-size: 20px;
+      line-height: 1.4;
       color: #111;
       text-align: justify;
       column-count: 2;
-      column-gap: 50px;
-      column-fill: auto;
-      overflow: hidden;
-      white-space: pre-wrap;
-      word-break: break-word;
-      z-index: 3;
-      display: none;
-    }
-       .article-text2{
-      position: absolute;
-      font-size: 18px;
-      line-height: 1;
-      color: #111;
-      text-align: justify;
-      column-count: 1;
-      column-gap: 50px;
+      column-gap: 40px;
       column-fill: auto;
       overflow: hidden;
       white-space: pre-wrap;
@@ -309,9 +294,9 @@
       <textarea id="textoInput1" placeholder="Escreva a notícia aqui..."></textarea>
     </div>
 
-    <div class="control" id="texto2Control" >
-      <label for="textoInput2">Texto bloco 2</label>
-      <textarea id="textoInput2" placeholder="Texto bloco 2"></textarea>
+    <div class="control" id="texto2Control" style="display:none;">
+      <label for="textoInput2">Texto secundário</label>
+      <textarea id="textoInput2" placeholder="Escreva o segundo bloco..."></textarea>
     </div>
 
     <div class="control" id="texto3Control" style="display:none;">
@@ -342,7 +327,7 @@
       </div>
 
       <div id="textBlock1" class="article-text" contenteditable="true"></div>
-      <div id="textBlock2" class="article-text2" contenteditable="true"></div>
+      <div id="textBlock2" class="article-text" contenteditable="true"></div>
       <div id="textBlock3" class="article-text" contenteditable="true"></div>
     </div>
   </div>
@@ -365,8 +350,8 @@
         title: { top: 340, left: 110, width: 680 },
         image: { top: 430, left: 60, width: 340, height: 250 },
         texts: [
-          { top: 480, left: 470, width: 300, height: 300, active: true },
-          { top: 780, left: 35, width: 825, height: 530, active: true },
+          { top: 430, left: 450, width: 330, height: 250, active: true },
+          { top: 740, left: 60, width: 780, height: 590, active: true },
           { top: 0, left: 0, width: 0, height: 0, active: false }
         ]
       }
@@ -475,11 +460,14 @@
         }
       });
 
-      
+      if (layoutName === "jornal2") {
+        texto2Control.style.display = "flex";
+      } else {
+        texto2Control.style.display = "none";
+      }
+
       texto3Control.style.display = "none";
-      textoInput2.value = "";
       textoInput3.value = "";
-      textBlock2.textContent = "";
       textBlock3.textContent = "";
     }
 
