@@ -176,12 +176,12 @@
 
     .article-text{
       position: absolute;
-      font-size: 18px;
-      line-height: 1;
+      font-size: 20px;
+      line-height: 1.4;
       color: #111;
       text-align: justify;
       column-count: 2;
-      column-gap: 50px;
+      column-gap: 40px;
       column-fill: auto;
       overflow: hidden;
       white-space: pre-wrap;
@@ -245,7 +245,7 @@
       <label for="layoutSelect">Layout</label>
       <select id="layoutSelect">
         <option value="jornal1">Capa destaque</option>
-        <option value="jornal2">Notícia maior (4 blocos)</option>
+        <option value="jornal2">Notícia maior</option>
       </select>
     </div>
 
@@ -290,18 +290,18 @@
     </div>
 
     <div class="control">
-      <label for="textoInput1">Texto bloco 1</label>
-      <textarea id="textoInput1" placeholder="Escreva o texto do bloco 1..."></textarea>
+      <label for="textoInput1">Texto principal</label>
+      <textarea id="textoInput1" placeholder="Escreva a notícia aqui..."></textarea>
     </div>
 
-    <div class="control">
+    <div class="control" id="texto2Control" style="display:none;">
       <label for="textoInput2">Texto bloco 2</label>
-      <textarea id="textoInput2" placeholder="Escreva o texto do bloco 2..."></textarea>
+      <textarea id="textoInput2" placeholder="Texto bloco 2"></textarea>
     </div>
 
-    <div class="control">
+    <div class="control" id="texto3Control" style="display:none;">
       <label for="textoInput3">Texto bloco 3</label>
-      <textarea id="textoInput3" placeholder="Escreva o texto do bloco 3..."></textarea>
+      <textarea id="textoInput3" placeholder="Texto bloco 3"></textarea>
     </div>
 
     <div class="control">
@@ -350,9 +350,9 @@
         title: { top: 340, left: 110, width: 680 },
         image: { top: 430, left: 60, width: 340, height: 250 },
         texts: [
-          { top: 430, left: 450, width: 330, height: 250, active: true },
-          { top: 740, left: 60, width: 330, height: 350, active: true },
-          { top: 740, left: 450, width: 330, height: 350, active: true }
+          { top: 430, left: 60, width: 780, height: 900, active: true },
+          { top: 0, left: 0, width: 0, height: 0, active: false },
+          { top: 0, left: 0, width: 0, height: 0, active: false }
         ]
       }
     };
@@ -362,6 +362,8 @@
     const textoInput1 = document.getElementById("textoInput1");
     const textoInput2 = document.getElementById("textoInput2");
     const textoInput3 = document.getElementById("textoInput3");
+    const texto2Control = document.getElementById("texto2Control");
+    const texto3Control = document.getElementById("texto3Control");
     const imagemInput = document.getElementById("imagemInput");
     const sepiaRange = document.getElementById("sepiaRange");
     const zoomRange = document.getElementById("zoomRange");
@@ -458,13 +460,12 @@
         }
       });
 
-      if (layoutName === "jornal1") {
-        textoInput2.parentElement.style.display = "none";
-        textoInput3.parentElement.style.display = "none";
-      } else {
-        textoInput2.parentElement.style.display = "flex";
-        textoInput3.parentElement.style.display = "flex";
-      }
+      texto2Control.style.display = "none";
+      texto3Control.style.display = "none";
+      textoInput2.value = "";
+      textoInput3.value = "";
+      textBlock2.textContent = "";
+      textBlock3.textContent = "";
     }
 
     tituloInput.addEventListener("input", () => {
